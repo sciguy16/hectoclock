@@ -23,29 +23,31 @@ impl Display for HectoTime {
     }
 }
 
-fn chrono_to_hectotime(ts: DateTime<Utc>) -> HectoTime {
-    let midnight = ts
-        .date_naive()
-        .and_hms_opt(0, 0, 0)
-        .unwrap()
-        .timestamp_micros();
-    let ts = ts.timestamp_micros();
+impl From<DateTime<Utc>> for HectoTime {
+    fn from(ts: DateTime<Utc>) -> HectoTime {
+        let midnight = ts
+            .date_naive()
+            .and_hms_opt(0, 0, 0)
+            .unwrap()
+            .timestamp_micros();
+        let ts = ts.timestamp_micros();
 
-    let micros = ts - midnight;
-    let hectodays = micros.div_euclid(MICROS_IN_HECTODAY);
-    let remainder = micros.rem_euclid(MICROS_IN_HECTODAY);
-    let millidays = remainder.div_euclid(MICROS_IN_MILLIDAY);
-    let remainder = remainder.rem_euclid(MICROS_IN_MILLIDAY);
-    let microdays = remainder.div_euclid(MICROS_IN_MICRODAY);
-    HectoTime {
-        hectodays,
-        millidays,
-        microdays,
+        let micros = ts - midnight;
+        let hectodays = micros.div_euclid(MICROS_IN_HECTODAY);
+        let remainder = micros.rem_euclid(MICROS_IN_HECTODAY);
+        let millidays = remainder.div_euclid(MICROS_IN_MILLIDAY);
+        let remainder = remainder.rem_euclid(MICROS_IN_MILLIDAY);
+        let microdays = remainder.div_euclid(MICROS_IN_MICRODAY);
+        HectoTime {
+            hectodays,
+            millidays,
+            microdays,
+        }
     }
 }
 
 fn main() {
     let now = Utc::now();
-    let ht = chrono_to_hectotime(now);
+    let ht = HectoTime::from(now);
     println!("time: {ht}");
 }

@@ -9,7 +9,7 @@ Running this program produces the following output format:
 
 ```bash
 -cargo r
-time: 91.2.78
+time: 91.2.780
 ```
 
 This represents 91 hectodays, 2 tenths, 780 microdays, or about 21:54:24

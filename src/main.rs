@@ -1,33 +1,46 @@
 use chrono::{DateTime, Utc};
 use std::fmt::{self, Display, Formatter};
 
-const SECONDS_IN_DAY: i64 = 86400;
-const SECONDS_IN_HECTODAY: i64 = SECONDS_IN_DAY / 100;
-const SECONDS_IN_MILLIDAY: f64 = (SECONDS_IN_HECTODAY as f64) / 10.0;
+const MICROS_IN_DAY: i64 = 86_400_000_000;
+const MICROS_IN_HECTODAY: i64 = MICROS_IN_DAY / 100;
+const MICROS_IN_MILLIDAY: i64 = MICROS_IN_HECTODAY / 10;
+const MICROS_IN_MICRODAY: i64 = MICROS_IN_MILLIDAY / 1000;
 
 #[derive(Copy, Clone, Debug)]
 struct HectoTime {
     pub hectodays: i64,
-    pub millidays: f64,
+    pub millidays: i64,
+    pub microdays: i64,
 }
 
 impl Display for HectoTime {
     fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
-        write!(fmt, "{}.{:.02}", self.hectodays, self.millidays)
+        write!(
+            fmt,
+            "{}.{}.{:03}",
+            self.hectodays, self.millidays, self.microdays,
+        )
     }
 }
 
 fn chrono_to_hectotime(ts: DateTime<Utc>) -> HectoTime {
-    let midnight = ts.date_naive().and_hms_opt(0, 0, 0).unwrap().timestamp();
-    let ts = ts.timestamp();
+    let midnight = ts
+        .date_naive()
+        .and_hms_opt(0, 0, 0)
+        .unwrap()
+        .timestamp_micros();
+    let ts = ts.timestamp_micros();
 
-    let seconds = ts - midnight;
-    let hectodays = seconds.div_euclid(SECONDS_IN_HECTODAY);
-    let remainder = seconds.rem_euclid(SECONDS_IN_HECTODAY);
-    let millidays = (remainder as f64) / SECONDS_IN_MILLIDAY;
+    let micros = ts - midnight;
+    let hectodays = micros.div_euclid(MICROS_IN_HECTODAY);
+    let remainder = micros.rem_euclid(MICROS_IN_HECTODAY);
+    let millidays = remainder.div_euclid(MICROS_IN_MILLIDAY);
+    let remainder = remainder.rem_euclid(MICROS_IN_MILLIDAY);
+    let microdays = remainder.div_euclid(MICROS_IN_MICRODAY);
     HectoTime {
         hectodays,
         millidays,
+        microdays,
     }
 }
 
